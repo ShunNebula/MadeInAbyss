@@ -1,3 +1,24 @@
-[gd_scene format=3 uid="uid://b7wbks55riw6h"]
+[gd_scene load_steps=5 format=3 uid="uid://b7wbks55riw6h"]
+
+[ext_resource type="PackedScene" uid="uid://bdg2eojc73pmb" path="res://Scenes/Surface.tscn" id="1_ig7tw"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
+sky_top_color = Color(0.38431373, 0.45490196, 0.54901963, 1)
+
+[sub_resource type="Sky" id="Sky_ig7tw"]
+sky_material = SubResource("ProceduralSkyMaterial_7dm0k")
+
+[sub_resource type="Environment" id="Environment_0xm2m"]
+background_mode = 2
+sky = SubResource("Sky_ig7tw")
+ambient_light_color = Color(0.73300546, 0.7330054, 0.7330054, 1)
 
 [node name="Main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071068, 0.7071068, 0, -0.7071068, 0.7071068, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_0xm2m")
+
+[node name="Surface" parent="." instance=ExtResource("1_ig7tw")]
