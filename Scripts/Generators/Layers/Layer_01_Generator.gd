@@ -166,5 +166,6 @@ func generate_surface():
 	# Присваиваем сгенерированный меш нашему MeshInstance3D
 	terrain_mesh_instance.mesh = array_mesh
 	terrain_mesh_instance.material_override = surface_material # Применяем наш материал
+	terrain_mesh_instance.create_trimesh_collision()
 
 	print("Surface generated with %d vertices and %d triangles." % [vertices.size(), indices.size() / 3.0])

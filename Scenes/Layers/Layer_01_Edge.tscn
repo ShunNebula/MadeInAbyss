@@ -1,12 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://bdg2eojc73pmb"]
+[gd_scene load_steps=5 format=3 uid="uid://bdg2eojc73pmb"]
 
 [ext_resource type="Script" uid="uid://7vp7erp0alom" path="res://Scripts/Generators/Layers/Layer_01_Generator.gd" id="1_8hnpc"]
 [ext_resource type="Material" uid="uid://dq5kphr7dtk4u" path="res://Materials/ground_material.tres" id="2_47hoo"]
+[ext_resource type="Script" uid="uid://dvopexxif0yqh" path="res://Scripts/TransitionZone.gd" id="3_v2yhl"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_47hoo"]
+radius = 8.0
 
 [node name="Layer01Edge" type="Node3D"]
 script = ExtResource("1_8hnpc")
-size_x = 1000
-size_z = 1000
-height_multiplier = 100.0
+height_multiplier = 10.0
+octaves = 7
 persistence = 100.0
 surface_material = ExtResource("2_47hoo")
+
+[node name="TransitionZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
+script = ExtResource("3_v2yhl")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TransitionZone"]
+shape = SubResource("CylinderShape3D_47hoo")
