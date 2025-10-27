@@ -11,6 +11,8 @@ extends Node3D
 
 @export var surface_material: Material
 
+@export var hole_radius: float = 8.0
+
 # Узел MeshInstance3D, который будет отображать нашу сгенерированную поверхность
 var terrain_mesh_instance: MeshInstance3D
 
@@ -94,6 +96,14 @@ func generate_surface():
 	# Используем size_x и size_z (без +1), т.к. это количество квадратов
 	for x_idx in range(size_x):
 		for z_idx in range(size_z):
+			var square_center_x = float(x_idx) - offset_x + 0.5
+			var square_center_z = float(z_idx) - offset_z + 0.5
+			
+			var distance_center = sqrt(square_center_x * square_center_x + square_center_z * square_center_z)
+			
+			if distance_center < hole_radius:
+				continue
+			
 			# Индексы вершин для текущего квадрата:
 			# v0---v1
 			# |     |
