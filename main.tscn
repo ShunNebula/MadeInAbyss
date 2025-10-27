@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://b7wbks55riw6h"]
 
-[ext_resource type="PackedScene" uid="uid://bdg2eojc73pmb" path="res://Scenes/Surface.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://bdg2eojc73pmb" path="res://Scenes/Layers/Layer_01_Edge.tscn" id="1_ig7tw"]
 [ext_resource type="Material" uid="uid://dq5kphr7dtk4u" path="res://Materials/ground_material.tres" id="2_0xm2m"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
@@ -22,7 +22,7 @@ transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_0xm2m")
 
-[node name="Surface" parent="." instance=ExtResource("1_ig7tw")]
+[node name="LayerContainer" parent="." instance=ExtResource("1_ig7tw")]
 transform = Transform3D(-10, 0, 8.742278e-07, 0, 10, 0, -8.742278e-07, 0, -10, 0, 0, 0)
 height_multiplier = 100.0
 persistence = 100.0

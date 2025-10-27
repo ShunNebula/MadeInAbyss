@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://bdg2eojc73pmb"]
-
-[ext_resource type="Script" uid="uid://7vp7erp0alom" path="res://Scripts/Generators/SurfaceGenerator.gd" id="1_8hnpc"]
-
-[node name="Surface" type="Node3D"]
-script = ExtResource("1_8hnpc")
