@@ -1,7 +1,7 @@
 extends Node3D
 
-@export var size_x: int = 10
-@export var size_z: int = 10
+@export var size_x: int = 64
+@export var size_z: int = 64
 @export var noise_scale: float = 0.02      # Масштаб шума, влияет на размер холмов
 @export var height_multiplier: float = 5.0 # Максивальная высота холмов
 
@@ -60,10 +60,6 @@ func _get_height(x: int, z: int) -> float:
 	# Затем умножаем на height_multiplier, чтобы получить итоговую высоту
 	return (total_height + 1.0) * 0.5 * height_multiplier
 
-# res://Scripts/Generators/SurfaceGenerator.gd
-
-# ... (все @export переменные, _ready, _get_height)
-
 func generate_surface():
 	print("Generating surface...")
 
@@ -71,25 +67,28 @@ func generate_surface():
 	var vertices: PackedVector3Array = PackedVector3Array()  # Позиции вершин (X, Y, Z)
 	var normals: PackedVector3Array = PackedVector3Array()   # Нормали вершин (для освещения)
 	var uvs: PackedVector2Array = PackedVector2Array()       # UV-координаты (для текстур)
-	var indices: PackedInt32Array = PackedInt32Array()     # Индексы, определяющие треугольники
-
+	var indices: PackedInt32Array = PackedInt32Array()       # Индексы, определяющие треугольники
+	
+	var offset_x = float(size_x) / 2.0
+	var offset_z = float(size_z) / 2.0
+	
 	# Проходим по нашей сетке, чтобы создать вершины
 	# x_idx и z_idx - это индексы в нашей сетке
 	for x_idx in range(size_x + 1): # +1, потому что у сетки N квадратов, но N+1 вершин
 		for z_idx in range(size_z + 1): # То же самое по Z
 
 			# Пока создаем плоскую сетку, Y=0. Позже здесь будет _get_height().
-			var height = 0.0 # <--- Временно устанавливаем Y в 0 для плоской сетки
+			var height = _get_height(x_idx, z_idx)
 
 			# Создаем новую вершину (позицию в 3D пространстве)
-			var vertex_position = Vector3(float(x_idx), height, float(z_idx))
+			var vertex_position = Vector3(float(x_idx) - offset_x, height, float(z_idx) - offset_z)
 			vertices.append(vertex_position)
 
 			# Пока что для нормалей и UV просто добавляем заглушки.
 			# Мы их рассчитаем корректно в следующих шагах.
-			normals.append(Vector3.UP) # Временно направляем нормали вверх
+			normals.append(Vector3.ZERO) # Временно направляем нормали вверх
 			uvs.append(Vector2(float(x_idx) / size_x, float(z_idx) / size_z))
-
+	
 	# Теперь, когда у нас есть все вершины, нам нужно создать треугольники из них
 	# Каждый квадрат в сетке состоит из двух треугольников
 	# Используем size_x и size_z (без +1), т.к. это количество квадратов
@@ -105,17 +104,36 @@ func generate_surface():
 			var v0 = x_idx * (size_z + 1) + z_idx
 			var v1 = (x_idx + 1) * (size_z + 1) + z_idx
 			var v2 = x_idx * (size_z + 1) + (z_idx + 1)
-			var v3 = (x_idx + 1) * (size_z + 1) + (z_idx + 1)
-
+			
 			# Первый треугольник (v0, v2, v1)
 			indices.append(v0)
 			indices.append(v1)
 			indices.append(v2)
-
+			
+			var p0 = vertices[v0]
+			var p1 = vertices[v1]
+			var p2 = vertices[v2]
+			
+			var normal1 = (p1 - p0).cross(p2 - p0).normalized()
+			normals[v0] += normal1
+			normals[v1] += normal1
+			normals[v2] += normal1
+			
+			var v3 = (x_idx + 1) * (size_z + 1) + (z_idx + 1)
+			
 			# Второй треугольник (v1, v2, v3)
 			indices.append(v1)
 			indices.append(v3)
 			indices.append(v2)
+			
+			var p3 = vertices[v3]
+			var normal2 = (p3 - p1).cross(p2 - p1).normalized()
+			normals[v1] += normal2
+			normals[v3] += normal2
+			normals[v2] += normal2
+	
+	for i in range(normals.size()):
+		normals[i] = normals[i].normalized()
 
 	# Создаем ArrayMesh и добавляем в него данные
 	var array_mesh = ArrayMesh.new()
@@ -137,4 +155,4 @@ func generate_surface():
 	terrain_mesh_instance.mesh = array_mesh
 	terrain_mesh_instance.material_override = surface_material # Применяем наш материал
 
-	print("Surface generated with %d vertices and %d triangles." % [vertices.size(), indices.size() / 3])
+	print("Surface generated with %d vertices and %d triangles." % [vertices.size(), indices.size() / 3.0])
