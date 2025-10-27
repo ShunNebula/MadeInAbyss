@@ -18,10 +18,12 @@ var terrain_mesh_instance: MeshInstance3D
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	print("SurfaceGenerator is ready. Type: ", get_class()) # Проверим тип узла
+	print("Layer 01 Generator is ready.")
+	#generate_surface()
+
+func generate_layer():
 	terrain_mesh_instance = MeshInstance3D.new()
 	add_child(terrain_mesh_instance)
-	print("MeshInstance3D added as child. Parent class: ", terrain_mesh_instance.get_parent().get_class())
 	generate_surface()
 
 # Функция для получения высоты в точке (x, z)

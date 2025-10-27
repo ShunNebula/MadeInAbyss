@@ -1,6 +1,12 @@
-[gd_scene load_steps=2 format=3 uid="uid://bdg2eojc73pmb"]
+[gd_scene load_steps=3 format=3 uid="uid://bdg2eojc73pmb"]
 
 [ext_resource type="Script" uid="uid://7vp7erp0alom" path="res://Scripts/Generators/Layers/Layer_01_Generator.gd" id="1_8hnpc"]
+[ext_resource type="Material" uid="uid://dq5kphr7dtk4u" path="res://Materials/ground_material.tres" id="2_47hoo"]
 
 [node name="Layer01Edge" type="Node3D"]
 script = ExtResource("1_8hnpc")
+size_x = 1000
+size_z = 1000
+height_multiplier = 100.0
+persistence = 100.0
+surface_material = ExtResource("2_47hoo")
