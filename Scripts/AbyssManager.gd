@@ -3,7 +3,8 @@ extends Node
 # --- Конфигурация слоёв ---
 # Словрь, где ключ - это номер слоя, а значение - путь к его сцене.
 const LAYER_SCENES = {
-	1: "res://Scenes/Layers/Layer_01_Edge.tscn"
+	1: "res://Scenes/Layers/Layer_01_Edge.tscn",
+	2: "res://Scenes/Layers/Layer_02_Forest.tscn"
 }
 
 # --- Состояние игры ---

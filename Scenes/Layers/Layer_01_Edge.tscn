@@ -8,6 +8,7 @@
 radius = 8.0
 
 [node name="Layer01Edge" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 553.02295, 0)
 script = ExtResource("1_8hnpc")
 height_multiplier = 10.0
 octaves = 7
