@@ -12,7 +12,8 @@ radius = 8.0
 [node name="Layer01Edge" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 553.02295, 0)
 script = ExtResource("1_8hnpc")
-height_multiplier = 10.0
+size_x = 100
+size_z = 100
 octaves = 7
 persistence = 100.0
 surface_material = ExtResource("2_47hoo")
@@ -20,6 +21,11 @@ rock_scene = ExtResource("3_kt1vy")
 relic_scene = ExtResource("4_7dich")
 rock_density = 0.05
 relic_density = 0.005
+ring_radius = 40.0
+ring_inner_width = 12.0
+ring_shape_noise_scale = 0.25
+ring_shape_noise_strength = 10.0
+ring_height_noise_scale = 10.0
 
 [node name="TransitionZone" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)

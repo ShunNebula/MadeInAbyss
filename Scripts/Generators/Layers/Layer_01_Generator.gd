@@ -18,6 +18,16 @@ extends Node3D
 @export var rock_density: float = 0.1      # 10% поверхности будет покрыто камнями
 @export var relic_density: float = 0.01    # 1% - реликвиями
 
+@export_group("Ring Mountains") # Создает красивую группу в инспекторе
+@export var ring_radius: float = 24.0 # Радиус, на котором будут пики гор
+@export var ring_inner_width: float = 8.0   # Ширина внутреннего обрыва (маленькая = резкий)
+@export var ring_outer_width: float = 30.0  # Ширина внешнего склона (большая = пологий)
+@export var ring_height: float = 15.0 # Дополнительная высота для гор
+@export var ring_shape_noise_scale: float = 0.05 # Масштаб шума для искажения формы
+@export var ring_shape_noise_strength: float = 4.0 # Сила искажения формы
+@export var ring_height_noise_scale: float = 0.08 # Масштаб шума для высоты пиков
+@export var ring_height_noise_strength: float = 0.5 # Влияние шума на высоту (0.5 = 50%)
+
 # Узел MeshInstance3D, который будет отображать нашу сгенерированную поверхность
 var terrain_mesh_instance: MeshInstance3D
 
@@ -35,42 +45,72 @@ func generate_layer():
 	print("Collision shape for surface created.")
 
 # Функция для получения высоты в точке (x, z)
-func _get_height(x: int, z: int) -> float:
-	var total_height = 0.0
+func _get_height(x_idx: int, z_idx: int) -> float:
+	# --- Часть 1: Базовый шум для общего рельефа (без изменений) ---
+	var base_noise_height = 0.0
+	# ... (весь код расчета base_noise_height, как и раньше) ...
+	# Я скопирую его сюда для полноты, чтобы ты мог просто заменить всю функцию
 	var current_amplitude = 1.0
-	var current_frequency = noise_scale # Начинаем с базовой частоты
-	
-	# Для мульти-октавного шума (фрактальный шум)
+	var current_frequency = noise_scale
 	for i in range(octaves):
-		# Получаем 2D-шум из нашего гловального FastNoiseLite
-		# Умножаем координаты на текущую частоту, чтобы получить разные детали
-		# ШУм FastNoiseLite возвращает значения в диапозоне [-1, 1]
-		var noise_value = Global.noise.get_noise_2d(float(x) * current_frequency, float(z) * current_frequency)
-		
-		# Добавляем к общей высоте, умножая на текущую амплитуду
-		total_height += noise_value * current_amplitude
-		
-		# Обновляем амплитуду и частоту для следующей октавы
+		var noise_value = Global.noise.get_noise_2d(float(x_idx) * current_frequency, float(z_idx) * current_frequency)
+		base_noise_height += noise_value * current_amplitude
 		current_amplitude *= persistence
 		current_frequency *= lacunarity
-	
-	# Нормализуем шум (т.к. tptal_height может выйти за [-1, 1] из-за октав)
-	# Этот шаг важен для контроля над height_multiplier.
-	var max_amplitude = 0.0 # Максимальная возможная амплитуда для заданного количества октав
+	var max_amplitude = 0.0
 	var amp = 1.0
 	for i in range(octaves):
 		max_amplitude += amp
 		amp *= persistence
-	
-	# Если max_amplitude > 0, нормализуем, иначе избегаем деления на ноль.
 	if max_amplitude > 0:
-		total_height /= max_amplitude
+		base_noise_height /= max_amplitude
 	else:
-		total_height = 0.0
-	
-	# Преобразуем шум [-1, 1] в [0, 1] (для удобства работы с высотами)
-	# Затем умножаем на height_multiplier, чтобы получить итоговую высоту
-	return (total_height + 1.0) * 0.5 * height_multiplier
+		base_noise_height = 0.0
+	base_noise_height = (base_noise_height + 1.0) * 0.5 * height_multiplier
+
+	# --- Часть 2: Искажение формы кольца (Domain Warping) ---
+	# Мы используем еще один шум, чтобы получить смещение для наших координат
+	var offset_x = Global.noise.get_noise_2d(float(x_idx) * ring_shape_noise_scale, float(z_idx) * ring_shape_noise_scale + 100.0)
+	var offset_z = Global.noise.get_noise_2d(float(x_idx) * ring_shape_noise_scale + 200.0, float(z_idx) * ring_shape_noise_scale)
+	# (+100.0, +200.0 - это просто смещение, чтобы использовать разные участки шума для X и Z)
+
+	var warped_x = float(x_idx) + offset_x * ring_shape_noise_strength
+	var warped_z = float(z_idx) + offset_z * ring_shape_noise_strength
+
+	# --- Часть 3: Расчет высоты асимметричного "бублика" ---
+	var centered_x = warped_x - (float(size_x) / 2.0)
+	var centered_z = warped_z - (float(size_z) / 2.0)
+	var distance_from_center = sqrt(centered_x * centered_x + centered_z * centered_z)
+
+	# Вычисляем НАПРАВЛЕННОЕ расстояние от пика. < 0 = внутри, > 0 = снаружи.
+	var signed_distance_from_ring = distance_from_center - ring_radius
+
+	var ring_strength = 0.0
+
+	# ПРОВЕРЯЕМ, ГДЕ МЫ НАХОДИМСЯ
+	if signed_distance_from_ring < 0:
+		# --- Мы на ВНУТРЕННЕМ склоне (обрыв) ---
+		# Используем маленькую ширину для резкого спада
+		if ring_inner_width > 0:
+			ring_strength = 1.0 - smoothstep(0.0, ring_inner_width, abs(signed_distance_from_ring))
+	else:
+		# --- Мы на ВНЕШНЕМ склоне ---
+		# Используем большую ширину для пологого спада
+		if ring_outer_width > 0:
+			ring_strength = 1.0 - smoothstep(0.0, ring_outer_width, signed_distance_from_ring)
+		
+	# --- Часть 4: Искажение высоты кольца (без изменений) ---
+	var height_noise = Global.noise.get_noise_2d(float(x_idx) * ring_height_noise_scale, float(z_idx) * ring_height_noise_scale)
+	var modulated_ring_height = ring_height * (1.0 + (height_noise * ring_height_noise_strength))
+	var mountain_height = modulated_ring_height * ring_strength
+
+	# --- Часть 5: Комбинируем всё вместе ---
+	# Мы хотим, чтобы горы "вырастали" из базового ландшафта, а не просто ставились поверх.
+	# Поэтому мы используем max(), чтобы выбрать большее из двух значений.
+	# Но чтобы сделать переход плавным, мы смешаем их с помощью ring_strength.
+	var final_height = lerp(base_noise_height, max(base_noise_height, mountain_height), ring_strength)
+
+	return final_height
 
 func generate_surface():
 	print("Generating surface...")
