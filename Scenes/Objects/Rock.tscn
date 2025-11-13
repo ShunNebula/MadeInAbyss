@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://dt8d3vx31311j"]
+
+[ext_resource type="Material" uid="uid://dq5kphr7dtk4u" path="res://Materials/ground_material.tres" id="1_rca30"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_n40m0"]
+material = ExtResource("1_rca30")
+
+[node name="Rock" type="MeshInstance3D"]
+mesh = SubResource("SphereMesh_n40m0")

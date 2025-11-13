@@ -13,6 +13,11 @@ extends Node3D
 
 @export var hole_radius: float = 8.0
 
+@export var rock_scene: PackedScene
+@export var relic_scene: PackedScene
+@export var rock_density: float = 0.1      # 10% поверхности будет покрыто камнями
+@export var relic_density: float = 0.01    # 1% - реликвиями
+
 # Узел MeshInstance3D, который будет отображать нашу сгенерированную поверхность
 var terrain_mesh_instance: MeshInstance3D
 
@@ -25,6 +30,9 @@ func generate_layer():
 	terrain_mesh_instance = MeshInstance3D.new()
 	add_child(terrain_mesh_instance)
 	generate_surface()
+	terrain_mesh_instance.create_trimesh_collision()
+	_place_objects()
+	print("Collision shape for surface created.")
 
 # Функция для получения высоты в точке (x, z)
 func _get_height(x: int, z: int) -> float:
@@ -169,3 +177,57 @@ func generate_surface():
 	terrain_mesh_instance.create_trimesh_collision()
 
 	print("Surface generated with %d vertices and %d triangles." % [vertices.size(), indices.size() / 3.0])
+
+func _place_objects():
+	if rock_scene == null or relic_scene == null:
+		return
+	
+	var rock_multimesh_instance = MultiMeshInstance3D.new()
+	var rock_multimesh = MultiMesh.new()
+	rock_multimesh.mesh = rock_scene.instantiate().mesh
+	# Устанавливаем формат данных: нам нужна 3D-трансформация для каждого объекта
+	rock_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	rock_multimesh_instance.multimesh = rock_multimesh
+	add_child(rock_multimesh_instance)
+	
+	var relic_multimesh_instance = MultiMeshInstance3D.new()
+	var relic_multimesh = MultiMesh.new()
+	relic_multimesh.mesh = relic_scene.instantiate().mesh
+	# Устанавливаем формат данных: нам нужна 3D-трансформация для каждого объекта
+	relic_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	relic_multimesh_instance.multimesh = relic_multimesh
+	add_child(relic_multimesh_instance)
+	
+	var rock_transforms = []
+	var relic_transforms = []
+	
+	# Проходим по всем вершинам нашего ландшафта
+	for i in range(terrain_mesh_instance.mesh.get_surface_count()):
+		var vertices = terrain_mesh_instance.mesh.surface_get_arrays(i)[Mesh.ARRAY_VERTEX]
+		for vertex_pos in vertices:
+			# Пропускаем центр, где дыра
+			if vertex_pos.distance_to(Vector3.ZERO) < hole_radius + 2.0:
+				continue
+			
+			# Размещаем камни
+			if randf() < rock_density:
+				var basis_node = Basis() # Создаем "чистый"
+				var position_node = vertex_pos # Сохраняем позицию
+				basis = basis_node.rotated(Vector3.UP, randf() * TAU)
+				basis = basis_node.scaled(Vector3.ONE * randf_range(0.5, 1.5))
+				var transform_node = Transform3D(basis_node, position_node)
+				rock_transforms.append(transform_node)
+			
+			# Размещаем реликвии
+			if randf() < relic_density:
+				var transform_node = Transform3D(Basis(), vertex_pos)
+				relic_transforms.append(transform_node)
+	
+	# Устанавливаем количество инстансов и их трансформации
+	rock_multimesh.instance_count = rock_transforms.size()
+	for i in range(rock_transforms.size()):
+		rock_multimesh.set_instance_transform(i, rock_transforms[i])
+	
+	relic_multimesh.instance_count = relic_transforms.size()
+	for i in range(relic_transforms.size()):
+		relic_multimesh.set_instance_transform(i, relic_transforms[i])

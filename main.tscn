@@ -21,7 +21,7 @@ environment = SubResource("Environment_0xm2m")
 [node name="LayerContainer" type="Node3D" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("1_ig7tw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1172.5077, 481.6091)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 600, 10)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 0, 0)
